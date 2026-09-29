@@ -10,17 +10,17 @@
 
 | Mục | Nội dung |
 |-----|----------|
-| Họ và tên | (điền họ tên) |
-| Mã học viên | (điền mã học viên) |
-| Repo | (điền link repo K4-L3B-DAY12-HoVaTen-MSSV-CloudServicesAndDeployment) |
+| Họ và tên | Nguyễn Đức Thịnh |
+| Mã học viên | 2A202602468 |
+| Repo | https://github.com/thihngD/K4-L3B-DAY12-NguyenDucThinh-2A202602468-CloudServicesAndDeployment |
 
 ## Service
 
 | Mục | Nội dung |
 |-----|----------|
-| Public URL | https://TODO-thay-bang-url-that.up.railway.app |
-| Platform | Railway / Render / Cloud Run — (điền platform bạn dùng) |
-| Ngày deploy | (điền ngày) |
+| Public URL | https://agent-production-8693.up.railway.app |
+| Platform | Railway |
+| Ngày deploy | 29/09/2026 |
 
 ## Biến Môi Trường Đã Set Trên Cloud
 
@@ -30,7 +30,7 @@ Ghi tên biến và **nguồn giá trị**, không ghi giá trị:
 |------|--------|---------|
 | `PORT` | ✅ | platform tự gán |
 | `AGENT_API_KEY` | ✅ | đặt trong dashboard, không nằm trong repo |
-| `REDIS_URL` | ✅ | (điền: Redis add-on của platform / Upstash / ...) |
+| `REDIS_URL` | ✅ | Redis add-on của Railway (biến tham chiếu `${{Redis.REDIS_URL}}`) |
 | `RATE_LIMIT_PER_MINUTE` | ✅ | 10 |
 | `MONTHLY_BUDGET_USD` | ✅ | 10.0 |
 | `LOG_LEVEL` | ✅ | INFO |
@@ -73,8 +73,30 @@ done; echo
 Dán output của các lệnh trên vào đây:
 
 ```
-(điền output)
+# 1. GET /health
+200 {"status": "ok", "service": "day12-agent", "version": "1.0.0"}
+
+# 2. GET /ready
+200 {"status": "ready", "redis": true}
+
+# 3. POST /ask không có API key
+401 {"detail":"invalid or missing API key"}
+
+# 4. POST /ask có API key
+200 {"answer": "Ngắn gọn: Deploy la gi phụ thuộc vào ba yếu tố — cấu hình qua
+biến môi trường, health check để orchestrator biết trạng thái, và giới hạn
+tài nguyên.", "user_id": "sv-test", "history_length": 0, "cost_usd": 2.265e-05,
+"tokens": {"in": 3, "out": 37}}
+
+# 5. Rate limit — 15 request liên tiếp cùng user (giới hạn 10/phút)
+200 200 200 200 200 200 200 200 200 200 429 429 429 429 429
 ```
+
+Ghi chú: mạng thử nghiệm (VinUni) có DNS nội bộ chập chờn với tên miền ngoài,
+gây timeout/ConnectError rời rạc khi gọi rời từng request; dùng kết nối
+keep-alive (1 httpx.Client) cho bài rate limit để loại nhiễu đó — hành vi
+429 sau request thứ 10 xác nhận sliding-window rate limit hoạt động đúng
+trên chính service đã deploy, không phải qua Redis giả cục bộ.
 
 ## Ảnh Chụp Màn Hình
 
@@ -85,17 +107,4 @@ Dán output của các lệnh trên vào đây:
 
 ---
 
-## Nếu Dùng Phương Án Dự Phòng
-
-Không đăng ký được tài khoản cloud? Vẫn nộp được bài, nhưng CP5 tối đa 60% điểm:
-
-1. Đặt `LOCAL_FALLBACK=true` trong `.env`
-2. Chạy `docker compose up -d` rồi kiểm tra `docker compose ps`
-3. Chụp màn hình vào `screenshots/`
-4. Chạy `pytest tests/test_cp5.py -v` — bộ test sẽ tự chuyển sang kiểm tra
-   `http://localhost:8000`
-5. Ghi rõ lý do không deploy được vào phần dưới đây:
-
-```
-(điền lý do nếu dùng phương án dự phòng, ngược lại xóa mục này)
-```
+Đã deploy thành công lên Railway, không dùng phương án dự phòng LOCAL_FALLBACK.
